@@ -26,18 +26,31 @@ const ApiKeyManagerPopup = ({ onOpenApp }: { onOpenApp: () => void }) => {
     try {
       const tempAi = new GoogleGenAI({ apiKey: targetKey });
       
-      // --- Step 1: Check Basic Text (Sequential Execution) ---
-      // Use gemini-1.5-flash for maximum availability verification on free tier
+      // --- Step 1: Check Basic Text (Robust Fallback Strategy) ---
+      // Try multiple models in order. If *any* work, we consider text capability active.
+      // This solves issues where specific models (like 1.5-flash) might be restricted on some keys.
+      const textModelsToTry = [
+          'gemini-3-flash-preview', 
+          'gemini-2.0-flash', 
+          'gemini-1.5-flash-latest',
+          'gemini-1.5-flash'
+      ];
+      
       let textRes: 'SUCCESS' | 'ERROR' = 'ERROR';
-      try {
-          await tempAi.models.generateContent({
-              model: 'gemini-1.5-flash',
-              contents: 'hi',
-          });
-          textRes = 'SUCCESS';
-      } catch (e) {
-          console.error("Text Check Failed:", e);
-          textRes = 'ERROR';
+      
+      for (const modelName of textModelsToTry) {
+          try {
+              await tempAi.models.generateContent({
+                  model: modelName,
+                  contents: 'hi',
+              });
+              textRes = 'SUCCESS';
+              console.log(`Text connection successful with: ${modelName}`);
+              break; // Stop testing if one works
+          } catch (e) {
+              console.warn(`Text check failed for ${modelName}`, e);
+              // Continue to next model
+          }
       }
       
       setCaps(prev => ({ ...prev, text: textRes as any }));
