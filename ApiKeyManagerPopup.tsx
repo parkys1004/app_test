@@ -21,38 +21,61 @@ const ApiKeyManagerPopup = ({ onOpenApp }: { onOpenApp: () => void }) => {
 
   const testConnection = async (targetKey: string) => {
     setStatus('TESTING');
-    setCaps({ text: 'CHECKING', image: 'CHECKING', pro: 'CHECKING' });
+    setCaps({ text: 'CHECKING', image: 'IDLE', pro: 'IDLE' });
     
     try {
       const tempAi = new GoogleGenAI({ apiKey: targetKey });
       
-      // Define checks for 3 core models
-      // Updated to gemini-2.0-flash for better stability and access
-      const checkText = tempAi.models.generateContent({
-          model: 'gemini-2.0-flash',
-          contents: 'hi',
-      }).then(() => 'SUCCESS').catch(() => 'ERROR');
-
-      const checkImage = tempAi.models.generateContent({
-          model: 'gemini-2.5-flash-image',
-          contents: 'a dot',
-      }).then(() => 'SUCCESS').catch(() => 'ERROR');
+      // --- Step 1: Check Basic Text (Sequential Execution) ---
+      // Use gemini-1.5-flash for maximum availability verification on free tier
+      let textRes: 'SUCCESS' | 'ERROR' = 'ERROR';
+      try {
+          await tempAi.models.generateContent({
+              model: 'gemini-1.5-flash',
+              contents: 'hi',
+          });
+          textRes = 'SUCCESS';
+      } catch (e) {
+          console.error("Text Check Failed:", e);
+          textRes = 'ERROR';
+      }
       
-      const checkPro = tempAi.models.generateContent({
-          model: 'gemini-3-pro-image-preview',
-          contents: 'a dot',
-      }).then(() => 'SUCCESS').catch(() => 'ERROR');
-
-      // Execute in parallel
-      const [textRes, imageRes, proRes] = await Promise.all([checkText, checkImage, checkPro]);
-      
-      setCaps({ text: textRes as any, image: imageRes as any, pro: proRes as any });
+      setCaps(prev => ({ ...prev, text: textRes as any }));
 
       if (textRes === 'SUCCESS') {
-          // At least text works, save key
+          // At least text works, save key immediately
           localStorage.setItem('suno_pro_api_key', encryptKey(targetKey));
           setSavedKeyExists(true);
           
+          // --- Step 2: Check Image Generation ---
+          setCaps(prev => ({ ...prev, image: 'CHECKING' }));
+          let imageRes: 'SUCCESS' | 'ERROR' = 'ERROR';
+          try {
+              await tempAi.models.generateContent({
+                  model: 'gemini-2.5-flash-image',
+                  contents: 'dot',
+              });
+              imageRes = 'SUCCESS';
+          } catch (e) {
+              console.error("Image Check Failed:", e);
+          }
+          setCaps(prev => ({ ...prev, image: imageRes as any }));
+
+          // --- Step 3: Check Pro Vision ---
+          setCaps(prev => ({ ...prev, pro: 'CHECKING' }));
+          let proRes: 'SUCCESS' | 'ERROR' = 'ERROR';
+          try {
+              await tempAi.models.generateContent({
+                  model: 'gemini-3-pro-image-preview',
+                  contents: 'dot',
+              });
+              proRes = 'SUCCESS';
+          } catch (e) {
+              console.error("Pro Check Failed:", e);
+          }
+          setCaps(prev => ({ ...prev, pro: proRes as any }));
+
+          // Final Status Decision
           if (imageRes === 'SUCCESS' && proRes === 'SUCCESS') {
               setStatus('SUCCESS');
               setTimeout(() => onOpenApp(), 1200);
@@ -61,9 +84,10 @@ const ApiKeyManagerPopup = ({ onOpenApp }: { onOpenApp: () => void }) => {
           }
       } else {
           setStatus('ERROR');
+          setCaps({ text: 'ERROR', image: 'ERROR', pro: 'ERROR' });
       }
     } catch (e) {
-      console.error(e);
+      console.error("Connection Critical Error:", e);
       setStatus('ERROR');
       setCaps({ text: 'ERROR', image: 'ERROR', pro: 'ERROR' });
     }
