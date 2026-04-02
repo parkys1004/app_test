@@ -6,7 +6,7 @@ import Dashboard from '../Dashboard';
 import Studio from '../Studio';
 import Header from '../Header';
 
-const MainService = () => {
+export default function SunoApp() {
     const [view, setView] = useState<ViewState>('DASHBOARD');
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -172,6 +172,4 @@ const MainService = () => {
             </div>
         </div>
     );
-};
-
-export default MainService;
+}
