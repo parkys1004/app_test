@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // [중요] 방구석작곡가(본점) 파이어베이스 콘솔에서 가져온 설정값입니다.
 const firebaseConfig = {
@@ -16,3 +17,4 @@ const firebaseConfig = {
 const adminApp = initializeApp(firebaseConfig, "admin-system");
 // getFirestore의 두 번째 인자로 스크린샷 상단에 보이는 긴 ID를 넣습니다.
 export const adminDb = getFirestore(adminApp, "ai-studio-dbbbbaa2-1129-4959-b336-f0af63245a60");
+export const auth = getAuth(adminApp);
