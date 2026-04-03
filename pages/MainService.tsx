@@ -1,15 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
-import AppGuard from './src/App';
-import { ViewState, Project } from './types';
-import { responsiveGlobalStyles, GENRE_DEFAULTS } from './constants';
-import ApiKeyManagerPopup from './ApiKeyManagerPopup';
-import Dashboard from './Dashboard';
-import Studio from './Studio';
-import Header from './Header';
+import { ViewState, Project } from '../types';
+import { responsiveGlobalStyles, GENRE_DEFAULTS } from '../constants';
+import ApiKeyManagerPopup from '../ApiKeyManagerPopup';
+import Dashboard from '../Dashboard';
+import Studio from '../Studio';
+import Header from '../Header';
 
-const App = () => {
+const MainService = () => {
     const [view, setView] = useState<ViewState>('DASHBOARD');
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -177,9 +174,4 @@ const App = () => {
     );
 };
 
-const root = createRoot(document.getElementById('root')!);
-root.render(
-    <AppGuard>
-        <App />
-    </AppGuard>
-);
+export default MainService;
