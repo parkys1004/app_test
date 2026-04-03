@@ -14,4 +14,5 @@ const firebaseConfig = {
 
 // 'adminApp'이라는 이름으로 별도 초기화 (기존 앱 설정과 충돌 방지)
 const adminApp = initializeApp(firebaseConfig, "admin-system");
-export const adminDb = getFirestore(adminApp);
+// getFirestore의 두 번째 인자로 스크린샷 상단에 보이는 긴 ID를 넣습니다.
+export const adminDb = getFirestore(adminApp, "ai-studio-dbbbbaa2-1129-4959-b336-f0af63245a60");
