@@ -7,6 +7,23 @@ export default function AppGuard({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<'loading' | 'authorized' | 'denied'>('loading');
   const [errorMsg, setErrorMsg] = useState('');
 
+
+
+
+useEffect(() => {
+  console.log("인증 체크 시작...");
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      console.log("로그인 감지 성공:", user.email);
+    } else {
+      console.log("로그인 감지 실패: user가 null입니다.");
+    }
+    // ... 기존 로직
+  });
+  return () => unsubscribe();
+}, []);
+
+
   useEffect(() => {
     // 1. 로그인 상태 확인 (본점 세션 공유)
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
